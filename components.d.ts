@@ -10,5 +10,6 @@ declare module 'vue' {
     EnteredInquiryCard: typeof import('./src/components/EnteredInquiryCard.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     InquiryButtonPanel: typeof import('./src/components/InquiryButtonPanel.vue')['default']
+    StatQuestionCountCard: typeof import('./src/components/StatQuestionCountCard.vue')['default']
   }
 }

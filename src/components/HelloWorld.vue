@@ -5,8 +5,10 @@
   import {onMounted, ref, computed} from "vue";
 import Category from '@/data/interfaces/Category';
 import Question from '@/data/interfaces/Question';
+import StatisticQuestionCount from "@/data/interfaces/StatisticQuestionCount";
 import { createQuestion, getQuestions } from '@/data/repositories/Questions';
 import Entry from '@/data/interfaces/Entry';
+import { getQuestionCount } from '@/data/repositories/Statistics';
 
   onMounted(async () => {
     await fetchData();
@@ -22,6 +24,8 @@ import Entry from '@/data/interfaces/Entry';
   const customQuestionText = ref<string>("");
   const customCategoryText = ref<string>("");
 
+  const statisticsQuestionCount = ref<StatisticQuestionCount[]>([]);
+
   const selectedCategory = computed<Category | undefined>(() =>
     categories.value.find(category => category.id === selectedCategoryId.value)
   )
@@ -35,6 +39,7 @@ import Entry from '@/data/interfaces/Entry';
       categories.value = await getCategories(),
       questions.value = await getQuestions(),
       entries.value = await getEntries(),
+      statisticsQuestionCount.value = await getQuestionCount()
     ])
   }
 
@@ -64,7 +69,7 @@ import Entry from '@/data/interfaces/Entry';
   }
 
   function downloadEntries() {
-    const csvContent = entries.value.map(x => x.categoryName + "," + x.questionText + "," + x.locationId + "\n");
+    const csvContent = entries.value.map(x => x.categoryName + ",\"" + x.questionText + "\"," + x.locationId + "\n");
     const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
     window.open(encodedUri);
   }
@@ -149,12 +154,12 @@ import Entry from '@/data/interfaces/Entry';
   </div>
 
   <v-navigation-drawer location="right">
-      <v-card>
-        <v-card-title>Top Inquiries</v-card-title>        
+    <v-card>
         <v-card-text>
-          <v-empty-state headline="No Inquiries yet" text="Enter inquiries to see stuff here" icon="mdi-magnify"></v-empty-state>
+            Popular inquiries
         </v-card-text>
-      </v-card>
+    </v-card>
+      <StatQuestionCountCard v-for="stat in statisticsQuestionCount" :stat="stat" @addEntry="submitEntry"></StatQuestionCountCard>
   
 </v-navigation-drawer>
       
