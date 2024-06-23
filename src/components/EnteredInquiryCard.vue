@@ -12,7 +12,7 @@ const emit = defineEmits<{
 }>();
 
 function formatDate(date: string): string {
-    return new Date(date).toLocaleTimeString();
+    return new Date(date).toTimeString();
 }
 
 </script>

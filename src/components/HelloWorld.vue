@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import EnteredInquiryCard from './EnteredInquiryCard.vue';
+  import QuestionSearchBar from "./QuestionSearchBar.vue";
   import {createCategory, getCategories} from "../data/repositories/Categories";
   import {createEntry, getEntries} from "../data/repositories/Entries";
   import {onMounted, ref, computed} from "vue";
@@ -99,7 +100,7 @@ import { getQuestionCount } from '@/data/repositories/Statistics';
     </v-btn-toggle>
   </v-col>
   <v-col :cols="7">
-    <v-autocomplete></v-autocomplete>
+    <QuestionSearchBar :questions="questions" :categories="categories" @addEntry="submitEntry"></QuestionSearchBar>
   </v-col>
   <v-col :cols="2">
     <v-btn prepend-icon="mdi-sort">Sort Categories</v-btn>
