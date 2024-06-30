@@ -12,5 +12,6 @@ declare module 'vue' {
     InquiryButtonPanel: typeof import('./src/components/InquiryButtonPanel.vue')['default']
     QuestionSearchBar: typeof import('./src/components/QuestionSearchBar.vue')['default']
     StatQuestionCountCard: typeof import('./src/components/StatQuestionCountCard.vue')['default']
+    StatsDialog: typeof import('./src/components/StatsDialog.vue')['default']
   }
 }

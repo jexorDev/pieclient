@@ -12,7 +12,7 @@ const emit = defineEmits<{
 }>();
 
 function formatDate(date: string): string {
-    return new Date(date).toTimeString();
+    return new Date(date).toTimeString().substring(0, 5)
 }
 
 </script>
@@ -22,7 +22,12 @@ function formatDate(date: string): string {
         <v-card-item>
             <v-card-subtitle>
                 
-                <div><v-icon :start="true">mdi-phone</v-icon>{{ formatDate(props.entry.timestamp) }}</div>
+                <div>
+                    <v-icon v-if="entry.locationId === 0" :start="true">mdi-phone</v-icon>
+                    <v-icon v-if="entry.locationId === 1" :start="true">mdi-information-variant</v-icon>
+                    <v-icon v-if="entry.locationId === 2" :start="true">mdi-satellite-uplink</v-icon>
+                    {{ formatDate(props.entry.timestamp) }}
+                </div>
             </v-card-subtitle>
             <v-card-text>
                 <div class="text-h6" v-text="props.entry.categoryName"></div>

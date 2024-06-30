@@ -14,3 +14,14 @@ export async function createEntry(questionId: number, locationId: number): Promi
     });
     return result.data;
 }
+
+export async function updateEntry(entryId: number, locationId: number): Promise<void> {
+    await axios.put(`${import.meta.env.VITE_API_BASE_URL}/entries`, {
+        id: entryId,
+        locationId: locationId
+    });
+}
+
+export async function deleteEntry(entryId: number): Promise<void> {
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/entries/${entryId}`);
+}

@@ -1,8 +1,9 @@
 <script setup lang="ts">
   import EnteredInquiryCard from './EnteredInquiryCard.vue';
   import QuestionSearchBar from "./QuestionSearchBar.vue";
+  import StatsDialog from './StatsDialog.vue';
   import {createCategory, getCategories} from "../data/repositories/Categories";
-  import {createEntry, getEntries} from "../data/repositories/Entries";
+  import {createEntry, getEntries, updateEntry, deleteEntry} from "../data/repositories/Entries";
   import {onMounted, ref, computed} from "vue";
 import Category from '@/data/interfaces/Category';
 import Question from '@/data/interfaces/Question';
@@ -24,6 +25,9 @@ import { getQuestionCount } from '@/data/repositories/Statistics';
   const selectedLocationId = ref<number>(0);
   const customQuestionText = ref<string>("");
   const customCategoryText = ref<string>("");
+  const selectedEntryToEdit = ref<Entry | undefined>(undefined);
+  const selectedEntryToEditLocation = ref<number>(0);
+  const showStatsDialog = ref(false);
 
   const statisticsQuestionCount = ref<StatisticQuestionCount[]>([]);
 
@@ -34,6 +38,8 @@ import { getQuestionCount } from '@/data/repositories/Statistics';
   const categoryQuestions = computed<Question[] | undefined>(() => questions.value.filter(question => question.categoryId === selectedCategoryId.value));
 
   const entriesSorted = computed<Entry[]>(() => entries.value.sort((a, b) => Date.parse(b.timestamp.toString()) - Date.parse(a.timestamp.toString())))
+
+  const showEditDialog = computed<boolean>(() => selectedEntryToEdit.value !== undefined);
 
   async function fetchData() {
     Promise.all([
@@ -50,8 +56,29 @@ import { getQuestionCount } from '@/data/repositories/Statistics';
     selectedCategoryId.value = null;
   }
 
+  async function modifyEntry() {
+    if (!selectedEntryToEdit.value) return;
+    selectedEntryToEdit.value.locationId = selectedEntryToEditLocation.value;
+    await updateEntry(selectedEntryToEdit.value.id, selectedEntryToEditLocation.value);
+
+    selectedEntryToEdit.value = undefined;
+    
+  }
+
   function editEntry(id: number) {
-    console.log(id)
+    selectedEntryToEdit.value = entries.value.find(x => x.id === id);
+    if (selectedEntryToEdit.value !== undefined) {
+      selectedEntryToEditLocation.value = selectedEntryToEdit.value.locationId;
+    }
+  }
+
+  async function removeEntry() {
+    if (selectedEntryToEdit.value === undefined) return;
+    
+    await deleteEntry(selectedEntryToEdit.value.id);
+    await fetchData();
+
+    selectedEntryToEdit.value = undefined;
   }
 
   async function submitQuestion(questionText: string) {
@@ -69,12 +96,9 @@ import { getQuestionCount } from '@/data/repositories/Statistics';
     customCategoryText.value = "";
   }
 
-  function downloadEntries() {
-    const csvContent = entries.value.map(x => x.categoryName + ",\"" + x.questionText + "\"," + x.locationId + "\n");
-    const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
-    window.open(encodedUri);
+  function showStats() {
+    showStatsDialog.value = true;
   }
-
 
 </script>
 <template>
@@ -83,10 +107,34 @@ import { getQuestionCount } from '@/data/repositories/Statistics';
       class="align-centerfill-height mx-auto"
       
     >
+    <v-dialog v-model="showEditDialog">
+      <v-card max-width="500">
+        <v-card-text>
+          <div>{{ selectedEntryToEdit?.categoryName }}</div>
+          <div>{{ selectedEntryToEdit?.questionText }}</div>
+          <v-btn-toggle v-model="selectedEntryToEditLocation" mandatory color="primary" divided>
+        <v-btn prepend-icon="mdi-phone">Phone</v-btn>
+        <v-btn prepend-icon="mdi-information-variant">Main Desk</v-btn>
+        <v-btn prepend-icon="mdi-satellite-uplink">Satellite Desk</v-btn>
+      </v-btn-toggle>
+
+        </v-card-text>
+        <v-card-actions>
+          <v-btn @click="removeEntry">Delete</v-btn>
+          <v-btn color="primary" @click="selectedEntryToEdit = undefined">Cancel</v-btn>
+          <v-btn color="primary" @click="modifyEntry">Save</v-btn>
+        </v-card-actions>
+        
+      </v-card>
+
+    </v-dialog>
     <v-navigation-drawer>
       <v-card>
         <v-card-title>Total Inquiries</v-card-title>
         <v-card-text><div class="text-h2">{{ entries.length }}</div></v-card-text>
+      </v-card>
+      <v-card>
+        <v-card-text>Recent Inquiries</v-card-text>
       </v-card>
   <EnteredInquiryCard v-for="entry in entriesSorted" :entry="entry" @editEntry="editEntry" @addEntry="submitEntry"></EnteredInquiryCard>
 
@@ -104,7 +152,7 @@ import { getQuestionCount } from '@/data/repositories/Statistics';
   </v-col>
   <v-col :cols="2">
     <v-btn prepend-icon="mdi-sort">Sort Categories</v-btn>
-    <v-btn @click="downloadEntries">CSV</v-btn>
+    <v-btn @click="showStats">Stats</v-btn>
   </v-col>
 </v-row>
   
@@ -163,7 +211,11 @@ import { getQuestionCount } from '@/data/repositories/Statistics';
       <StatQuestionCountCard v-for="stat in statisticsQuestionCount" :stat="stat" @addEntry="submitEntry"></StatQuestionCountCard>
   
 </v-navigation-drawer>
-      
+    
+
+
     </v-responsive>
   </v-container>
+  <StatsDialog :show="showStatsDialog" @close="showStatsDialog = false"></StatsDialog>
+  
 </template>
